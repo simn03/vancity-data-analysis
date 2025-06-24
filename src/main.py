@@ -1,13 +1,11 @@
-from lib import parsers, definitions as d
-import params
+from lib import statements as s, rates as r
+import params as p
 
-
-        
 
 def main():
-    statements = parsers.parse_statements_map(params.STATEMENT_ROOT)
+    statements = s.parse_statements(p.STATEMENT_ROOT)
 
-    rates = parsers.get_interest_rates(statements=statements)
+    rates = r.get_rates(statements=statements)
     
 
 if __name__ == "__main__":
