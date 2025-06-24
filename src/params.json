@@ -1,6 +1,39 @@
 {
     "STATEMENT_FOLDER": "/Users/simrit/Library/CloudStorage/OneDrive-Personal/documents/finances/vancity/statements",
-    "SUPPORTED_EXTENSIONS": [".pdf"],
-    "DEBUG_MODE": true
+    "VANCITY_PATH": "/Users/simrit/Developer/projects/vancity-data-analysis/backend/src/data/vancity_account_100060980649_2021-01-01.csv",
+    "LOANS": [
+        {   
+            "label": "jasbir",
+            "rows": [
+                { "date": "2023-04-17", "amount": -6, "type": "Official cheque fee" },
+                { "date": "2023-09-05", "amount": -9.95, "type": "Official cheque fee" },
+                { "date": "2023-09-05", "amount": -20000, "type": "Official cheque" },
+                { "date": "2023-11-04", "amount": -9.95, "type": "Official cheque fee" },
+                { "date": "2023-11-04", "amount": -40000, "type": "Official cheque" },
+                { "date": "2023-12-30", "amount": -9.95, "type": "Official cheque fee" },
+                { "date": "2023-12-30", "amount": -20000, "type": "Official cheque" },
+                { "date": "2023-01-02", "amount": -9.95, "type": "Official cheque fee" },
+                { "date": "2023-01-02", "amount": -20000, "type": "Official cheque" },
+                { "date": "2023-04-08", "amount": -9.95, "type": "Official cheque fee"},
+                { "date": "2023-04-08", "amount": -15000, "type": "Official cheque"}
+            ]
+        },
+        {
+            "label": "hari",
+            "rows": [
+                { "date": "2022-08-12", "amount": -6, "type": "Official cheque fee" },
+                { "date": "2022-08-12", "amount": -20000, "type": "Official cheque" }
+            ]
+        },
+        {
+            "label": "black-top-cabs",
+            "rows": [
+                { "date": "2021-11-06", "amount": -6, "type": "Official cheque fee" },
+                { "date": "2021-11-16", "amount": -134000, "type": "Official cheque"},
+                { "date": "2022-04-05", "amount": -2000, "type": "Funds transfer-online"},
+                { "date": "2023-10-10", "amount": 120000, "type": "Funds transfer"}
+            ]
+        }
+    ]
   }
   
