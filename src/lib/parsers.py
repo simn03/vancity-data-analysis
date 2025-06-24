@@ -37,46 +37,54 @@ def parse_statements_map(folder_path: str) -> List[d.StatementSummary]:
 
     return statements
 
-def extract_interest_summary(statement: d.StatementSummary) -> d.InterestSummary:
+def extract_interest_summary(statement: d.StatementSummary) -> list[d.InterestSummary]:
     """
-    Extracts interest start date, end date, and rate from the interest summary block in the PDF.
+    Extracts all interest summary entries (start date, end date, rate) from a statement PDF.
 
-    Returns a dictionary with 'start_date', 'end_date', and 'interest_rate' keys.
+    Returns a list of InterestSummary objects.
     """
     with fitz.open(statement.path) as doc:
         text = ""
         for page in doc:
-            text += page.get_text() # type: ignore
+            text += page.get_text()  # type: ignore
 
-    # Normalize spacing (remove extra whitespace and newlines)
-    cleaned = re.sub(r'\s+', '', text.upper())  # remove all whitespace and uppercase for consistency
+    # Normalize the text
+    cleaned = re.sub(r'\s+', '', text.upper())  # All uppercase, no whitespace
 
-    # Match pattern like "INTERESTSUMMARY:15APRTO14MAY:5.250%"
-    match = re.search(r'INTERESTSUMMARY:(\d{1,2}[A-Z]{3})TO(\d{1,2}[A-Z]{3}):([\d.]+)%', cleaned)
-    
-    if not match or match is None:
-        raise ValueError(f"Failed to find interest rate for {statement.date.strftime("%Y")}")
+    # Find all matches like 15APRTO14MAY:5.250%
+    matches = re.findall(r'(\d{1,2}[A-Z]{3})TO(\d{1,2}[A-Z]{3}):([\d.]+)%', cleaned)
 
-    raw_start, raw_end, interest_rate = match.groups()
+    if not matches:
+        raise ValueError(f"Failed to find any interest rates for {statement.date.strftime('%Y-%m')}")
+
+    summaries: list[d.InterestSummary] = []
+    for raw_start, raw_end, rate_str in matches:
+        # Parse start and end date without year
+        parsed_start = datetime.strptime(raw_start, "%d%b")
+        parsed_end = datetime.strptime(raw_end, "%d%b")
+
+        # Assign years intelligently
+        if parsed_start.month == 12 and parsed_end.month < 3:
+            parsed_start = parsed_start.replace(year=statement.date.year - 1)
+            parsed_end = parsed_end.replace(year=statement.date.year)
+        else:
+            parsed_start = parsed_start.replace(year=statement.date.year)
+            parsed_end = parsed_end.replace(year=statement.date.year)
+
+        rate = float(rate_str) / 100
+        
+        print(parsed_start, " - ", parsed_end, " - ", rate)
+
+        summaries.append(d.InterestSummary(
+            start=parsed_start,
+            end=parsed_end,
+            rate=rate
+        ))
+
+    return summaries
+
+def collapse_interest_summaries(rates: List[d.StatementSummary]) -> List[d.InterestSummary]:
     
-    parsed_start = datetime.strptime(raw_start, "%d%b")
-    if parsed_start.month == 12:
-        parsed_start = parsed_start.replace(year=statement.date.year - 1)
-    else:
-        parsed_start = parsed_start.replace(year=statement.date.year)
-    
-    parsed_end = datetime.strptime(raw_end, "%d%b")
-    parsed_end = parsed_end.replace(year=statement.date.year)
-    
-    rate = float(interest_rate) / 100
-    
-    print(parsed_start, " - ", parsed_end, " - ", rate)
-    
-    return d.InterestSummary(
-        start = parsed_start,
-        end = parsed_end,
-        rate = rate
-    )
 
 def get_interest_rates(statements: List[d.StatementSummary]) -> dict[str, d.InterestSummary]:
     interest_rates: dict[str, d.InterestSummary] = dict()
