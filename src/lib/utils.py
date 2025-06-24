@@ -1,3 +1,5 @@
+from datetime import datetime
+
 def format_currency(amount: float, symbol: str = "$", places: int = 2) -> str:
     """
     Formats a float as currency with comma grouping and optional symbol.
@@ -9,3 +11,7 @@ def format_currency(amount: float, symbol: str = "$", places: int = 2) -> str:
     sign = "-" if amount < 0 else ""
     amount = abs(amount)
     return f"{sign}{symbol}{amount:,.{places}f}"
+
+def format_date(date_str: str) -> str:
+    date = datetime.strptime(date_str, "%Y-%m-%d")
+    return date.strftime("%b %d, %Y")
