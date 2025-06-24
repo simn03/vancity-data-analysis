@@ -4,7 +4,7 @@ from typing import List
 import fitz  # PyMuPDF
 import lib.definitions as d
 
-def extract_rates(statement: d.StatementSummary) -> list[d.InterestSummary]:
+def _extract_rates(statement: d.StatementSummary) -> list[d.InterestSummary]:
     """
     Extracts all interest summary entries (start date, end date, rate) from a statement PDF.
 
@@ -53,7 +53,7 @@ def extract_rates(statement: d.StatementSummary) -> list[d.InterestSummary]:
 
     return summaries
 
-def collapse_rates(rates: List[d.InterestSummary]) -> List[d.InterestSummary]:
+def _collapse_rates(rates: List[d.InterestSummary]) -> List[d.InterestSummary]:
     if not rates:
         return []
 
@@ -89,18 +89,36 @@ def collapse_rates(rates: List[d.InterestSummary]) -> List[d.InterestSummary]:
     return collapsed
     
 
-def get_rates(statements: List[d.StatementSummary]) -> dict[str, d.InterestSummary]:
-    interest_rates: dict[str, d.InterestSummary] = dict()
+def get_rates(statements: List[d.StatementSummary]) -> list[d.InterestSummary]:
     raw_rates: List[d.InterestSummary] = list()
     for s in statements:
-        rates = extract_rates(s)
+        rates = _extract_rates(s)
         for r in rates:
             raw_rates.append(r)
             
-    collapsed_rates = collapse_rates(raw_rates)
-    
-    for rate in collapsed_rates:
-        print(rate.start, " - ", rate.end, " - ", rate.rate)
-        interest_rates[rate.start.strftime("%Y-%m-%d")] = rate
+    collapsed_rates = _collapse_rates(raw_rates)
         
-    return interest_rates
+    return collapsed_rates
+
+def get_rate(date: datetime, rates: List[d.InterestSummary]) -> float:
+    """
+    Performs binary search on sorted InterestSummary list to find the rate for the given date.
+
+    Raises:
+        ValueError if the date does not fall within any interest range.
+    """
+    left = 0
+    right = len(rates) - 1
+
+    while left <= right:
+        mid = (left + right) // 2
+        summary = rates[mid]
+
+        if summary.start <= date <= summary.end:
+            return summary.rate
+        elif date < summary.start:
+            right = mid - 1
+        else:
+            left = mid + 1
+
+    raise ValueError(f"No interest rate found for {date.date()}")

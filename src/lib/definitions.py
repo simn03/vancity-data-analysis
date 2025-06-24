@@ -12,3 +12,7 @@ class InterestSummary:
     end: datetime
     rate: float
     
+    def __str__(self):
+        return f"{self.start.date()} to {self.end.date()} @ {self.rate:.2%}"
+    def toCSV(self):
+        return f"{self.start.date()},{self.end.date()},{self.rate},"
