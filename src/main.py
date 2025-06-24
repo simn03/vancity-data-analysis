@@ -1,8 +1,8 @@
-from lib import statements as s, rates as r, vancity as v, interest as i, accounts as a
+from lib import rates as r, vancity as v, interest as i, accounts as a
 from datetime import datetime
 from config import config
 def main():
-    statements = s.parse_statements(config["STATEMENT_FOLDER"])
+    statements = r.parse_statements(config["STATEMENT_FOLDER"])
     rates = r.get_rates(statements=statements)    
     
     r.export_csv("rates.csv", rates)

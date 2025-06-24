@@ -1,0 +1,20 @@
+{
+    "STATEMENT_FOLDER": "/path/to/vancity/statements",
+    "VANCITY_PATH": "/path/to/vancity/account/export.csv",
+    "LOANS": [
+        {   
+            "label": "joe",
+            "rows": [
+                { "date": "2023-04-17", "amount": -6, "type": "Official cheque fee" }
+            ]
+        },
+        {
+            "label": "harry",
+            "rows": [
+                { "date": "2022-08-12", "amount": -6, "type": "Official cheque fee" },
+                { "date": "2022-08-12", "amount": -20000, "type": "Official cheque" }
+            ]
+        }
+    ]
+  }
+  
