@@ -1,4 +1,5 @@
 import re
+import os
 from datetime import datetime, timedelta
 from typing import List
 import fitz  # PyMuPDF
@@ -122,3 +123,25 @@ def get_rate(date: datetime, rates: List[d.InterestSummary]) -> float:
             left = mid + 1
 
     raise ValueError(f"No interest rate found for {date.date()}")
+
+def export_csv(file: str, rates: List[d.InterestSummary]) -> None:
+    """
+    Exports the list of InterestSummary entries to a CSV file in the /data directory.
+
+    Args:
+        file (str): File name (e.g. 'july_rates.csv')
+        rates (List[d.InterestSummary]): List of interest rate summaries
+    """
+    # Determine full path
+    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    data_path = os.path.join(root_dir, "data")
+    os.makedirs(data_path, exist_ok=True)
+
+    full_path = os.path.join(data_path, file)
+
+    with open(full_path, "w", encoding="utf-8") as f:
+        f.write("start_date,end_date,interest_rate\n")
+        for rate in rates:
+            f.write(rate.toCSV() + "\n")
+
+    print(f"Exported {len(rates)} entries to {full_path}")    
