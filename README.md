@@ -54,8 +54,8 @@ backend/
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/yourusername/vancity-interest-allocator.git
-cd vancity-interest-allocator
+git clone https://github.com/simn03/vancity-data-analysis.git
+cd vancity-data-analysis
 ```
 
 ### 2. Create virtual environment
