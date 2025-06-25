@@ -35,4 +35,7 @@ class AccountRow:
 class Account:
     label: str
     rows: list[AccountRow]
+    totalInterest: float
+    totalPrinciple: float
     currBalance: float        
+    

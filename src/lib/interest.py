@@ -31,6 +31,8 @@ def calculate_interest_rows(
 
     current_balance = 0.0
     current_interest = 0.0
+    total_interest = 0.0
+    total_principle = 0.0
     rows: List[defs.AccountRow] = []
 
     d = min_date
@@ -40,6 +42,7 @@ def calculate_interest_rows(
             for row in payment_map[d]:
                 amt = row.amount
                 current_balance += amt
+                total_principle += amt
                 rows.append(defs.AccountRow(
                     date=datetime.combine(d, datetime.min.time()),
                     type="payment" if amt > 0 else "loan",
@@ -51,8 +54,8 @@ def calculate_interest_rows(
         # Apply daily interest
         rate = interest_by_date.get(d, 0.0)
         daily_interest = current_balance * (rate / 365)
-        current_interest += daily_interest
-
+        current_interest += min(0, daily_interest) # do not remove interest
+ 
         # Charge interest monthly on specified day
         if d.day == interest_day:
             if abs(current_interest) > 0.005:  # threshold to avoid noise
@@ -64,6 +67,7 @@ def calculate_interest_rows(
                     amount=round(current_interest, 2),
                     balance=round(current_balance, 2)
                 ))
+                total_interest += current_interest
                 current_interest = 0.0
 
         d += timedelta(days=1)
@@ -71,7 +75,9 @@ def calculate_interest_rows(
     account = defs.Account(
         label=account_history.label,
         rows=rows,
-        currBalance=rows[len(rows)-1].balance
+        currBalance=rows[len(rows)-1].balance,
+        totalInterest=total_interest,
+        totalPrinciple=total_principle
     )
 
     return account
