@@ -46,6 +46,8 @@ backend/
         account number, date (dd-mmm-yyyy), description, [unused], amount subtracted, amount added, balance
 
 - Used to build the full payment history and compute interest owed over time.
+- Can be obtained by going into your desired vancity account and choosing '.csv' from the drop down 
+- **Ensure it includes all dates listed in the `LOANS` section of the `params.json`. This is required to validate all the transactions to avoid any mistakes**
 
 ---
 

@@ -12,11 +12,12 @@ from config import config
 
 def main():
     # Redact statements for sharing
-    v.redact_statements(
-        input_folder=config["STATEMENT_FOLDER"],
-        output_folder=f"{config["STATEMENT_FOLDER"]}/output",
-        account=config["VANCITY_ACCOUNT_NUMBER"]
-    )
+    if config["REDACT_STATEMENTS"]:
+        v.redact_statements(
+            input_folder=config["STATEMENT_FOLDER"],
+            output_folder=f"{config["STATEMENT_FOLDER"]}/output",
+            account=config["VANCITY_ACCOUNT_NUMBER"]
+        )
     
     # Export parsed rates
     statements = r.parse_statements(config["STATEMENT_FOLDER"])

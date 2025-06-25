@@ -1,6 +1,8 @@
 {
     "STATEMENT_FOLDER": "/path/to/vancity/statements",
     "VANCITY_PATH": "/path/to/vancity/account/export.csv",
+    "VANCITY_ACCOUNT_NUMBER": "12 digit number",
+    "REDACT_STATEMENTS": false,
     "LOANS": [
         {   
             "label": "joe",
