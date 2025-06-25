@@ -3,6 +3,9 @@ import csv
 import re
 from datetime import datetime
 from typing import List
+import os
+import fitz  # PyMuPDF
+
 
 def parse_csv(file: str) -> d.Account:
     rows: List[d.AccountRow] = []
@@ -67,5 +70,103 @@ def parse_csv(file: str) -> d.Account:
     return d.Account(
         label=account_number,
         rows=rows,
-        currBalance=last_balance
+        currBalance=last_balance,
+        totalInterest=-1,
+        totalPrinciple=-1
     )
+    
+metadata_pattern = re.compile(
+        r'^ACCOUNTOWNERS:.*'
+        r'|^STATEMENTPERIOD:.*'
+        r'|^ACCOUNTSUMMARY$'
+        r'|^DAILYBANKING$'
+        r'|^TOTAL$'
+        r'|^OPENINGCLOSING$'
+        r'|^TOTALTOTALBALANCEONBALANCEON$'
+        r'|^ACCOUNTSUMMARY$'
+        r'|^WITHDRAWALSDEPOSITS$'
+        r'|VANCITY/.COM$'
+        r'|^BORROWING$'
+        r'|^MORTGAGES$'
+        ,re.IGNORECASE
+    )
+header_pattern = re.compile(
+    r'.\s*#\d{12}($|\(\w+(?!\))$|\(\w+\)$)',
+    re.IGNORECASE
+)
+interest_pattern = re.compile(
+    r'(#\d{12}LINEOFCREDITDETAILS.*)'
+    r'|INTERESTSUMMARY:\d{1,2}[A-Z]{3}TO\d{1,2}[A-Z]{3}:[\d.]+%'
+    r'|\d{1,2}[A-Z]{3}TO\d{1,2}[A-Z]{3}:[\d.]+%',
+    re.IGNORECASE
+)
+item_pattern = re.compile(
+    r'.* [^\(] .*\)$$'
+    r'|DATEDESCRIPTION\s*'
+    r'|\d{1,2}[A-Z]{3}.*OFFICIALCHEQUE'                # official cheque lines (out)
+    r'|\d{1,2}[A-Z]{3}.*FUNDSTRANSFER-ONLINE'          # funds transfer lines (out)
+    r'|\d{1,2}[A-Z]{3}.*FUNDSTRANSFER',                # funds transfer (in)
+    re.IGNORECASE
+)
+    
+def _redact_statement(in_path: str, out_path: str, account: str) -> None:
+    correct_header_pattern = re.compile(
+        rf'.\s*#{account}.\s*', 
+        re.IGNORECASE
+    )
+    
+    doc = fitz.open(in_path, filetype="pdf")
+
+    for page in doc:
+        blocks = page.get_text("blocks") # type: ignore
+        inside_section = False
+
+        for block in blocks:
+            if len(block) < 5:
+                continue
+
+            rect = fitz.Rect(block[:4])
+            text = block[4].strip()
+            cleaned = re.sub(r'\s+', '', text.upper())  # All uppercase, no whitespace
+            
+            if metadata_pattern.search(cleaned):
+                continue
+
+            # Check for the chequing-account header
+            if header_pattern.search(cleaned):
+                if correct_header_pattern.search(cleaned):
+                    inside_section = True
+                else:
+                    inside_section = False
+                continue
+                
+            # Determine if this block should be preserved
+            if interest_pattern.search(cleaned):
+                continue  # Keep interest lines
+            if inside_section and item_pattern.search(cleaned):
+                continue  # Keep chequing section transactions
+
+            # Otherwise, redact
+            page.add_redact_annot(rect, fill=(1, 1, 1))
+
+        page.apply_redactions() # type: ignore
+
+    doc.save(out_path)
+    doc.close()
+    inside_section = False
+
+def redact_statements(input_folder: str, output_folder: str, account: str) -> None:
+    # Patterns
+
+    os.makedirs(output_folder, exist_ok=True)
+
+    for fname in os.listdir(input_folder):
+        if not fname.lower().endswith(".pdf"):
+            continue
+
+        in_path = os.path.join(input_folder, fname)
+        out_path = os.path.join(output_folder, fname.replace(".pdf", "-redacted.pdf"))
+        
+        _redact_statement(in_path, out_path, account)
+        
+    print(f"Redacted {len(os.listdir(input_folder))} statements to {output_folder}")

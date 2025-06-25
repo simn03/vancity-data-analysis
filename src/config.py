@@ -9,6 +9,7 @@ class Params(TypedDict):
     SUPPORTED_EXTENSIONS: list[str]
     DEBUG_MODE: bool
     LOANS: List[Dict[str, Any]]
+    VANCITY_ACCOUNT_NUMBER: str
 
 # Load params.json from the project root
 root_dir = os.path.dirname(os.path.abspath(__file__))
