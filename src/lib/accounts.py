@@ -1,7 +1,9 @@
 import lib.definitions as d
+import lib.utils as u
+from collections import defaultdict
 import os
 from typing import Any, Dict, List
-from datetime import datetime
+from datetime import datetime, date
 
 def dict_to_row(json: Dict[str, Any]) -> d.AccountRow:
     date: datetime | None = None
@@ -57,7 +59,9 @@ def dict_to_account(json: Dict[str, Any]) -> d.Account:
     return d.Account(
         label=label,
         rows=rows,
-        currBalance=currentBal
+        currBalance=currentBal,
+        totalInterest=0,
+        totalPrinciple=0
     )
 
 def get_row_map(account: d.Account) -> dict[str, d.AccountRow]:
@@ -89,3 +93,22 @@ def export_csv(file: str, account: d.Account) -> None:
             f.write(row.toCSV() + "\n")
 
     print(f"Exported {len(account.rows)} entries to {full_path}")    
+    
+def validate_transactions(statements: d.Account, loanAccounts: list[d.Account]):
+    row_map: dict[date, list[d.AccountRow]] = defaultdict(list)
+    
+    for row in statements.rows:
+        row_map[row.date.date()].append(row)
+    
+    for loanAccount in loanAccounts:
+        for row in loanAccount.rows:
+            if row.date.date() not in row_map:
+                raise ValueError(f"could not find transaction by {loanAccount.label} on {row.date.date()}")
+            isEqual = False
+            for rr in row_map[row.date.date()]:
+                if rr.amount == row.amount:
+                    isEqual = True
+                    
+            if not isEqual:
+                raise ValueError(f"could not find transaction by {loanAccount.label} on {row.date.date()} with amount {u.format_currency(row.amount)}")
+            
