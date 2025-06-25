@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import List
 import fitz  # PyMuPDF
 import lib.definitions as d
+import lib.accounts as a
 
 def parse_statements(folder_path: str) -> List[d.StatementSummary]:
     """
@@ -129,6 +130,8 @@ def get_rates(statements: List[d.StatementSummary]) -> list[d.InterestSummary]:
         for r in rates:
             raw_rates.append(r)
             
+    export_csv("raw_rates.csv", raw_rates)
+    
     collapsed_rates = _collapse_rates(raw_rates)
         
     return collapsed_rates
